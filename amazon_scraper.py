@@ -3,6 +3,8 @@ import requests
 import json
 import argparse
 
+associateID = 'technolog0ed0-20'
+
 argparser = argparse.ArgumentParser()
 argparser.add_argument('url', help='Amazon Product Details URL')
 
@@ -20,6 +22,6 @@ r = requests.get(args.url, headers=headers)
 # pass the html content 
 data = e.extract(r.text)
 
-print(r.text)
+#print(r.text)
 
 print(json.dumps(data, indent=True))
