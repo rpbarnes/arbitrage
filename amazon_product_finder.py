@@ -1,19 +1,11 @@
 from urllib.parse import urljoin
 from selectorlib import Extractor
-import requests
 from googlesearch import search
+from scraper_agent import scraperAgent
 import itertools
 import json
 import time
 
-class scraperAgent():
-    def __init__(self):
-        self.user_agent = 'Mozilla/5.0 (Linux; <Android Version>; <Build Tag etc.>) AppleWebKit/<WebKit Rev>(KHTML, like Gecko) Chrome/<Chrome Rev> Safari/<WebKit Rev>'
-        #user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
-        self.headers = { 'User-Agent': self.user_agent }
-
-    def getHtmlContent(self, url):
-        return requests.get(url, headers=self.headers)
 
 class googleFinder():
     def __init__(self):
@@ -21,6 +13,56 @@ class googleFinder():
 
     def search(self, query, numResults=5):
         return search(query, tld='com', num=numResults)
+
+
+class amazonItem():
+    def __init__(self, response):
+        self._response = response
+        self.initializeDict()
+        self.itemURL = ""
+        self.getPrice()
+        self.productName = response.get("ProductName")
+        self.productDict.update({"productNameAmazon": self.productName})
+        self.productType = response.get("ProductType")
+        self.productDict.update({"productTypeAmazon": self.productType})
+        self.productCategory = response.get("ProductCategory")
+        self.productDict.update({"productCategoryAmazon": self.productCategory})
+        self.availability = response.get("Availability")
+        self.productDict.update({"availabilityAmazon": self.availability})
+        self.categoryRank = response.get("CategoryRank")
+        self.productDict.update({"categoryRankAmazon": self.categoryRank})
+
+    def initializeDict(self):
+        self.productDict = {}
+        self.productDict.update({"productNameAmazon": ""})
+        self.productDict.update({"itemURLAmazon": ""})
+        self.productDict.update({"productTypeAmazon": ""})
+        self.productDict.update({"productCategoryAmazon": ""})
+        self.productDict.update({"availabilityAmazon": ""})
+        self.productDict.update({"categoryRankAmazon": ""})
+        self.productDict.update({"priceAmazon": ""})
+    
+    def getPrice(self):
+        self.price = None
+
+        try:
+            priceList = self._response.get("Price").split("$")
+            if len(priceList) >= 1:
+                self.price = float(priceList[1])
+                self.productDict.update({"priceAmazon": self.price})
+        except:
+            print("Can't parse %s"%self._response.get("Price"))
+
+    def printItem(self):
+        print("Product Name: %s"%self.productName)
+        print("Price: %s"%self.price)
+        print("URL: %s"%self.itemURL)
+        print("Product Type: %s"%self.productType)
+        print("Product Category: %s"%self.productCategory)
+        print("Availability: %s"%self.availability)
+        print("Category Rank: %s"%self.categoryRank)
+
+
 
 class amazonFinder():
     def __init__(self):
@@ -42,6 +84,8 @@ class amazonFinder():
         Make sure keywords are in amazon title
         return productData that has keywords in amazon title.
         """
+        print("searching for %s..."%keywords)
+
         results = self._google.search(keywords + ' amazon')
 
         searchFilters = keywords.split(' ')
@@ -59,10 +103,13 @@ class amazonFinder():
                         containsFilter = False
 
                 if (containsFilter):
-                    return productData
+                    item = amazonItem(productData)
+                    item.itemURL = result
+                    item.productDict.update({"itemURLAmazon": result})
+                    return item
 
             if (count > num_results):
-                return {}
+                return None
 
             count += 1
 
@@ -75,12 +122,9 @@ class amazonFinder():
 #
 #print(result)
 
-amazon = amazonFinder()
+if __name__ == "__main__":
+    amazon = amazonFinder()
 
-productData = amazon.findBestMatch(keywords='cisco SG350')
+    productData = amazon.findBestMatch(keywords='cisco SG350')
 
-print(productData)
-
-
-
-
+    productData.printItem()
