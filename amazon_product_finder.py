@@ -96,11 +96,18 @@ class amazonFinder():
             if ('www.amazon' in result):
                 productData = self.extractAmazonProductInfo(result)
 
-                containsFilter = True
+                containsFilter = False
 
-                for searchFilter in searchFilters:
-                    if (searchFilter  not in productData.get('ProductName')):
-                        containsFilter = False
+                titleLower = productData.get('ProductName')
+                if titleLower != None and titleLower != []:
+
+                    containsFilter = True
+                    titleLower = titleLower.lower()
+                    for searchFilter in searchFilters:
+                        sf = searchFilter.lower()
+
+                        if (sf  not in titleLower):
+                            containsFilter = False
 
                 if (containsFilter):
                     item = amazonItem(productData)
