@@ -2,7 +2,7 @@ from ebay_finder import EbayFinder
 from amazon_product_finder import amazonFinder
 from csv_write import CsvWriter
 
-searchTerms = ["cisco microphone new", "mitel new", "conference equipment new", "networking equipment new"]
+searchTerms = ["networking equipment new", "electronics new"]
 
 ebay = EbayFinder()
 amazon = amazonFinder()
