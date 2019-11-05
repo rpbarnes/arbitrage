@@ -1,6 +1,7 @@
 from ebay_finder import EbayFinder
 from amazon_product_finder import amazonFinder
 from csv_write import CsvWriter
+import time
 
 searchTerms = ["networking equipment new", "electronics new"]
 
@@ -30,7 +31,8 @@ for searchTerm in searchTerms:
                     csvWriter.write(amazonProduct, ebayProduct)
 
             else:
-                print("Invalid product")
+                print("Invalid product, sleeping for time.") 
+                time.sleep(2)
 
 
             print("Running next search")
