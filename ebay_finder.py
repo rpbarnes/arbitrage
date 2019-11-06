@@ -1,9 +1,12 @@
 import datetime
-from ebaysdk.exception import ConnectionError
-from ebaysdk.finding import Connection
+from ebaysdk_local.exception import ConnectionError
+from ebaysdk_local.finding import Connection
 from selectorlib import Extractor
 from scraper_agent import scraperAgent
 import re
+
+# ebay finding sdk documentation
+# https://developer.ebay.com/Devzone/finding/CallRef/findItemsAdvanced.html
 
 class EbayItem():
     def __init__(self, response):
@@ -91,7 +94,12 @@ class EbayFinder():
         self._productExtractor = Extractor.from_yaml_file('selectors/EbayProductSelection2.yml')
 
     def findItemsByKeyword(self, searchWords, page = 1):
-        response = self._api.execute('findItemsAdvanced', {'keywords': searchWords, 'page': page})
+        response = self._api.execute('findItemsAdvanced', {
+            'keywords': searchWords, 
+            'sortOrder': 'PricePlusShippingHighest', 
+            'paginationOutput':{'entriesPerPage': 500, 'pageNumber': page},
+            
+            })
         return [EbayItem(x) for x in response.reply.searchResult.item]
 
     def getItemInformation(self, ebayItem):
@@ -141,7 +149,7 @@ if __name__ == "__main__":
     #    print(data.productData)
     #    next = input("press for next")
 
-    listOfItems2 = ebay.findItemsByKeyword("cisco microphone new", page=2)
+    listOfItems2 = ebay.findItemsByKeyword("cisco microphone new", page=12)
 
     data1 = ebay.getItemInformation(listOfItems[-1])
     data2 = ebay.getItemInformation(listOfItems2[-1])
