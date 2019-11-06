@@ -65,10 +65,14 @@ class EbayItem():
             currentPrice = priceString.get("currentPrice")
 
             if (currentPrice != None):
-                self.price = currentPrice.get("value")
-                self.currency = currentPrice.get("currencyId")
-                self.productDict.update({'priceEbay': self.price})
-                self.productDict.update({'currencyEbay': self.currency})
+                try:
+                    self.currency = currentPrice.get("currencyId")
+                    self.price = float(currentPrice.get("value"))
+                    self.productDict.update({'priceEbay': self.price})
+                    self.productDict.update({'currencyEbay': self.currency})
+                except:
+                    self.price = None
+
 
 
     def printItem(self):
