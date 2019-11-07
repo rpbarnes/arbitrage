@@ -112,29 +112,69 @@ class EbayFinder():
         html = self._agent.getHtmlContent(ebayItem.itemURL)
         data = self._productExtractor.extract(html.text)
 
-        ebayItem.brand = data.get('Brand2')
         ebayItem.productData = data
 
+        ebayItem = self.parseItemSpecifics(ebayItem)
+
         ebayItem = self.fillInModelData(ebayItem, data)
+
+        ebayItem = self.fillInBrand(ebayItem, data)
+
+        return ebayItem
+
+    def fillInBrand(self, ebayItem, data):
+        ebayItem.brand = ebayItem.itemSpecifics.get('Brand')
+
+        if ebayItem.brand != None:
+            ebayItem.brand = ebayItem.brand.split(' ')[0] # just pull the first in the string as this may have other hangers on that you don't want.
+
+        else:
+            ebayItem.brand = data.get('brand2')
+
+        return ebayItem
+
+    def parseItemSpecifics(self, ebayItem):
+        ## sample of parsing itemspecifics
+        productstring = ebayItem.productData.get('itemSpecificsString')
+        productlist = productstring.split(' ')
+        productdict = {}
+        key = None
+        currentWord = ''
+        for word in productlist:
+            if ':' in word:
+                if key != None:
+                    productdict.update({key: currentWord.strip()})
+                key = word.split(':')[0]
+                currentWord = ''
+
+            else:
+                currentWord += word + ' '
+        ebayItem.itemSpecifics = productdict
 
         return ebayItem
 
     def fillInModelData(self, ebayItem, data):
 
-        fieldsToCheck = ['MPN2', 'Model2', 'Model3', 'MPN',  'Model']
+        if ebayItem.itemSpecifics.get('Model') != None:
+            ebayItem.model = ebayItem.itemSpecifics.get('Model')
+
+        elif ebayItem.itemSpecifics.get('MPN') != None:
+            ebayItem.model = ebayItem.itemSpecifics.get('MPN')
+
+        #fieldsToCheck = ['MPN2', 'Model2', 'Model3', 'MPN',  'Model']
 
         # look for the first that contains a number
-        for fieldToCheck in fieldsToCheck:
-            toCheck = data.get(fieldToCheck)
+        #for fieldToCheck in fieldsToCheck:
+        #    toCheck = data.get(fieldToCheck)
 
-            if type(toCheck) is str:
+        #    if type(toCheck) is str:
 
-                match = re.search(r'\d', toCheck)
+        #        match = re.search(r'\d', toCheck)
 
-                if (match != None): # see if it looks like a part number
-                    ebayItem.model = toCheck
-                    print("taking %s"%toCheck)
-                    break
+        #        if (match != None): # see if it looks like a part number
+        #            ebayItem.model = toCheck
+        #            print("taking %s"%toCheck)
+        #            break
 
         return ebayItem
 
@@ -147,30 +187,15 @@ class EbayFinder():
 if __name__ == "__main__":
     ebay = EbayFinder()
 
-    listOfItems = ebay.findItemsByKeyword("server new")
+    listOfItems = ebay.findItemsByKeyword("conference equipment new")
 
     for item in listOfItems:
         data = ebay.getItemInformation(item)
         data.printItem()
-        productstring = data.productData.get('itemSpecificsString')
-        print('\n\n')
-        print(productstring)
-        print('\n\n')
-        ## sample of parsing itemspecifics
-        productlist = productstring.split(' ')
-        productdict = {}
-        key = None
-        for word in productlist:
-            if key != None:
-                productdict.update({key: word})
-                key = None
 
-            if ':' in word:
-                key = word.split(':')[0]
-
-        print(json.dumps(productdict, sort_keys=True, indent=4))
-        print('\n')
-        print(productlist)
+        print('\n\n')
+        print(json.dumps(data.itemSpecifics, indent=4, skipkeys=True))
+        print('\n\n')
 
         next = input("press for next")
         print('\n\n')

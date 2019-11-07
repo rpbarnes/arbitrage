@@ -3,7 +3,7 @@ from amazon_product_finder import amazonFinder
 from csv_write import CsvWriter
 import time
 
-searchTerms = ["cisco microphone new", "lot office phone new", "textbook new" ]
+searchTerms = ["conference equipment new","cisco microphone new", "lot office phone new" ]
 
 ebay = EbayFinder()
 amazon = amazonFinder()
@@ -21,7 +21,7 @@ for searchTerm in searchTerms:
                 ebayProduct = ebay.getItemInformation(ebayProduct)
 
                 ebayProduct.printItem()
-                print(ebayProduct.productData)
+                #print(ebayProduct.productData)
 
                 if (ebayProduct.brand != "" and ebayProduct.model != "" and ebayProduct.condition == "New"):
                     amazonProduct = amazon.findBestMatch(keywords="%s %s"%(ebayProduct.brand, ebayProduct.model))
@@ -39,6 +39,7 @@ for searchTerm in searchTerms:
                 print("Price is too low skipping")
 
             print("Running next search")
+            print('\n\n')
 
 
 
