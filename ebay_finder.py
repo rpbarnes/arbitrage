@@ -147,7 +147,7 @@ class EbayFinder():
 if __name__ == "__main__":
     ebay = EbayFinder()
 
-    listOfItems = ebay.findItemsByKeyword("speaker new")
+    listOfItems = ebay.findItemsByKeyword("server new")
 
     for item in listOfItems:
         data = ebay.getItemInformation(item)
@@ -168,8 +168,9 @@ if __name__ == "__main__":
             if ':' in word:
                 key = word.split(':')[0]
 
-        json.dumps(productdict, sort_keys=True, indent=4)
-        print('\n\n')
+        print(json.dumps(productdict, sort_keys=True, indent=4))
+        print('\n')
+        print(productlist)
 
         next = input("press for next")
         print('\n\n')
