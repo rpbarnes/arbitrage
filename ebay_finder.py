@@ -1,6 +1,6 @@
 import datetime
-from ebaysdk_local.exception import ConnectionError
-from ebaysdk_local.finding import Connection
+from ebaysdk.exception import ConnectionError
+from ebaysdk.finding import Connection
 from selectorlib import Extractor
 from scraper_agent import scraperAgent
 import re
@@ -90,6 +90,7 @@ class EbayItem():
         print("Buy Now: %s"%self.buyNow)
         print("Condition: %s"%self.condition)
 
+# the get item information needs improvement to actually get the item info
 class EbayFinder():
     def __init__(self):
         self._apiKey = 'RyanBarn-listalle-PRD-2b31f1040-dd93d724'
@@ -145,20 +146,20 @@ class EbayFinder():
 if __name__ == "__main__":
     ebay = EbayFinder()
 
-    listOfItems = ebay.findItemsByKeyword("cisco microphone new")
+    listOfItems = ebay.findItemsByKeyword("speaker new")
 
-    #for item in listOfItems:
-    #    data = ebay.getItemInformation(item)
-    #    data.printItem()
-    #    print(data.productData)
-    #    next = input("press for next")
+    for item in listOfItems:
+        data = ebay.getItemInformation(item)
+        data.printItem()
+        print(data.productData)
+        next = input("press for next")
 
-    listOfItems2 = ebay.findItemsByKeyword("cisco microphone new", page=12)
+    #listOfItems2 = ebay.findItemsByKeyword("cisco microphone new", page=12)
 
-    data1 = ebay.getItemInformation(listOfItems[-1])
-    data2 = ebay.getItemInformation(listOfItems2[-1])
+    #data1 = ebay.getItemInformation(listOfItems[-1])
+    #data2 = ebay.getItemInformation(listOfItems2[-1])
 
-    data1.printItem()
-    data2.printItem()
+    #data1.printItem()
+    #data2.printItem()
 
 
