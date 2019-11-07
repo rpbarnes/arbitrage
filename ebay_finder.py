@@ -4,6 +4,7 @@ from ebaysdk.finding import Connection
 from selectorlib import Extractor
 from scraper_agent import scraperAgent
 import re
+import json
 
 # ebay finding sdk documentation
 # https://developer.ebay.com/Devzone/finding/CallRef/findItemsAdvanced.html
@@ -151,8 +152,27 @@ if __name__ == "__main__":
     for item in listOfItems:
         data = ebay.getItemInformation(item)
         data.printItem()
-        print(data.productData)
+        productstring = data.productData.get('itemSpecificsString')
+        print('\n\n')
+        print(productstring)
+        print('\n\n')
+        ## sample of parsing itemspecifics
+        productlist = productstring.split(' ')
+        productdict = {}
+        key = None
+        for word in productlist:
+            if key != None:
+                productdict.update({key: word})
+                key = None
+
+            if ':' in word:
+                key = word.split(':')[0]
+
+        json.dumps(productdict, sort_keys=True, indent=4)
+        print('\n\n')
+
         next = input("press for next")
+        print('\n\n')
 
     #listOfItems2 = ebay.findItemsByKeyword("cisco microphone new", page=12)
 
