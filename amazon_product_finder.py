@@ -74,7 +74,23 @@ class amazonFinder():
     def extractAmazonProductInfo(self, url):
         html = self._agent.getHtmlContent(url)
         data = self._productExtractor.extract(html.text)
+        dataEmpty = self._checkThatDataIsNotEmpty(data)
+        if (dataEmpty): # try again with a different user agent
+            self._agent.switchUserAgent()
+            html = self._agent.getHtmlContent(url)
+            data = self._productExtractor.extract(html.text)
+
         return data
+
+    def _checkThatDataIsNotEmpty(self, data):
+        """
+        look through the extracted data and validate that the data fields are populated. If not likely we're blocked by a captcha
+        """
+        for key in data.keys():
+            if data.get(key) != []:
+                return False
+
+        return True
 
 
     def findBestMatch(self, keywords = 'python programming', num_results = 5):
@@ -119,6 +135,8 @@ class amazonFinder():
                 return None
 
             count += 1
+            # incase we're going through a bunch of amazon listings sleep so we don't hammer amazon.
+            time.sleep(2) 
 
 
 

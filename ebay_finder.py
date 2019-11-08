@@ -102,9 +102,9 @@ class EbayFinder():
     def findItemsByKeyword(self, searchWords, page = 1):
         response = self._api.execute('findItemsAdvanced', {
             'keywords': searchWords, 
-            'sortOrder': 'PricePlusShippingHighest', 
-            'paginationOutput':{'entriesPerPage': 500, 'pageNumber': page},
-            
+            #'sortOrder': 'PricePlusShippingHighest', 
+            'page': page,
+            #'paginationOutput':{'entriesPerPage': 500, 'pageNumber': page}, # this command doesn't work...
             })
         return [EbayItem(x) for x in response.reply.searchResult.item]
 
@@ -189,23 +189,23 @@ if __name__ == "__main__":
 
     listOfItems = ebay.findItemsByKeyword("conference equipment new")
 
-    for item in listOfItems:
-        data = ebay.getItemInformation(item)
-        data.printItem()
+    #for item in listOfItems:
+    #    data = ebay.getItemInformation(item)
+    #    data.printItem()
 
-        print('\n\n')
-        print(json.dumps(data.itemSpecifics, indent=4, skipkeys=True))
-        print('\n\n')
+    #    print('\n\n')
+    #    print(json.dumps(data.itemSpecifics, indent=4, skipkeys=True))
+    #    print('\n\n')
 
-        next = input("press for next")
-        print('\n\n')
+    #    next = input("press for next")
+    #    print('\n\n')
 
-    #listOfItems2 = ebay.findItemsByKeyword("cisco microphone new", page=12)
+    listOfItems2 = ebay.findItemsByKeyword("cisco microphone new", page=12)
 
-    #data1 = ebay.getItemInformation(listOfItems[-1])
-    #data2 = ebay.getItemInformation(listOfItems2[-1])
+    data1 = ebay.getItemInformation(listOfItems[-1])
+    data2 = ebay.getItemInformation(listOfItems2[-1])
 
-    #data1.printItem()
-    #data2.printItem()
+    data1.printItem()
+    data2.printItem()
 
 

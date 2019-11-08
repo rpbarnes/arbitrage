@@ -11,7 +11,7 @@ csvWriter = CsvWriter(filename=time.strftime("%Y%m%d-%H%M%S") + "_results.csv")
 
 for searchTerm in searchTerms:
 
-    for page in range(1):
+    for page in range(100):
 
         ebayProducts = ebay.findItemsByKeyword(searchTerm, page=page)
 
