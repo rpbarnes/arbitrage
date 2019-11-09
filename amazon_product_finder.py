@@ -48,7 +48,10 @@ class amazonItem():
         try:
             priceList = self._response.get("Price").split("$")
             if len(priceList) >= 1:
-                self.price = float(priceList[1])
+                priceString = priceList[1]
+                price = priceString.split(',')
+                cleanPrice = ''.join(price)
+                self.price = float(cleanPrice)
                 self.productDict.update({"priceAmazon": self.price})
         except:
             print("Can't parse %s"%self._response.get("Price"))
