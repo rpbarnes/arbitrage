@@ -40,3 +40,6 @@ Dimensions:
 ShippingWeight:
     css: 'table.a-keyvalue tr:nth-of-type(3) td.a-size-base'
     type: Text
+productInformation:
+    css: 'div#prodDetails.a-section'
+    type: Text

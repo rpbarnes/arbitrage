@@ -3,7 +3,7 @@ from amazon_product_finder import amazonFinder
 from csv_write import CsvWriter
 import time
 
-searchTerms = ["conference equipment new","cisco microphone new", "lot office phone new" ]
+searchTerms = ["lot yeti new", "office electronics new" ]
 
 ebay = EbayFinder()
 amazon = amazonFinder()
@@ -11,7 +11,7 @@ csvWriter = CsvWriter(filename=time.strftime("%Y%m%d-%H%M%S") + "_results.csv")
 
 for searchTerm in searchTerms:
 
-    for page in range(100):
+    for page in range(1):
 
         ebayProducts = ebay.findItemsByKeyword(searchTerm, page=page)
 

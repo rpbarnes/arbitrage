@@ -102,7 +102,7 @@ class EbayFinder():
     def findItemsByKeyword(self, searchWords, page = 1):
         response = self._api.execute('findItemsAdvanced', {
             'keywords': searchWords, 
-            #'sortOrder': 'PricePlusShippingHighest', 
+            'sortOrder': 'PricePlusShippingHighest', 
             'page': page,
             #'paginationOutput':{'entriesPerPage': 500, 'pageNumber': page}, # this command doesn't work...
             })

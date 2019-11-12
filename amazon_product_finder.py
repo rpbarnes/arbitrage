@@ -4,6 +4,7 @@ from googlesearch import search
 from scraper_agent import scraperAgent
 import itertools
 import json
+import inspect
 import time
 
 
@@ -17,53 +18,189 @@ class googleFinder():
 
 class amazonItem():
     def __init__(self, response):
-        self._response = response
-        self.initializeDict()
-        self.itemURL = ""
-        self.getPrice()
-        self.productName = response.get("ProductName")
-        self.productDict.update({"productNameAmazon": self.productName})
-        self.productType = response.get("ProductType")
-        self.productDict.update({"productTypeAmazon": self.productType})
-        self.productCategory = response.get("ProductCategory")
-        self.productDict.update({"productCategoryAmazon": self.productCategory})
-        self.availability = response.get("Availability")
-        self.productDict.update({"availabilityAmazon": self.availability})
-        self.categoryRank = response.get("CategoryRank")
-        self.productDict.update({"categoryRankAmazon": self.categoryRank})
-
-    def initializeDict(self):
-        self.productDict = {}
-        self.productDict.update({"productNameAmazon": ""})
-        self.productDict.update({"itemURLAmazon": ""})
-        self.productDict.update({"productTypeAmazon": ""})
-        self.productDict.update({"productCategoryAmazon": ""})
-        self.productDict.update({"availabilityAmazon": ""})
-        self.productDict.update({"categoryRankAmazon": ""})
-        self.productDict.update({"priceAmazon": ""})
+        self.__response = response
+        self.__initializeClass()
     
-    def getPrice(self):
-        self.price = None
+    def parseData(self, url):
+        self.__getPrice()
+        self.__productName = self.__response.get("ProductName")
+        self.__productType = self.__response.get("ProductType")
+        self.__productCategory = self.__response.get("ProductCategory")
+        self.__availability = self.__response.get("Availability")
+        self.__categoryRank = self.__response.get("CategoryRank")
+        self.__parseProductInformation()
+        self.__itemURL = url
 
+        self.__fillDict()
+
+    def __initializeClass(self):
+        self.__itemURL = None
+        self.__productName = None
+        self.__productType = None
+        self.__productCategory = None
+        self.__availability = None
+        self.__categoryRank = None
+        self.__bestSellersRank = None
+        self.__asin = None
+        self.__price = None
+        self.__model = None
+        self.__shippingWeight = None
+        self.__itemWeight = None
+        self.__dateFirstListed = None
+
+    @property
+    def itemURL(self):
+        return self.__itemURL
+
+    @property
+    def itemWeight(self):
+        return self.__itemWeight
+
+    @property
+    def productName(self):
+        return self.__productName
+
+    @property
+    def productType(self):
+        return self.__productType
+
+    @property
+    def productCategory(self):
+        return self.__productCategory
+
+    @property
+    def availability(self):
+        return self.__availability
+
+    @property
+    def categoryRank(self):
+        return self.__categoryRank
+
+    @property
+    def bestSellersRank(self):
+        return self.__bestSellersRank
+
+    @property
+    def asin(self):
+        return self.__asin
+
+    @property
+    def price(self):
+        return self.__price
+
+    @property
+    def shippingWeight(self):
+        return self.__shippingWeight
+
+    @property
+    def model(self):
+        return self.__model
+
+    @property
+    def dateFirstListed(self):
+        return self.__dateFirstListed
+
+    def __parseProductInformation(self):
+        """
+        Parse product string information.
+
+        Given a list of search terms. Look for those terms in the product information string. find the position of those terms. then go through the product information string, given position of indecies, and pull out necessary product information.
+        """
+        searchTerms = [
+            [ 'Product Dimensions', -1 ],
+            [ 'Item Weight', -1 ], 
+            [ 'Shipping Weight', -1 ],
+            [ 'ASIN', -1 ],
+            [ 'Item model number', -1 ],
+            [ 'Best Sellers Rank', -1 ],
+            [ 'Date first listed on Amazon', -1 ],
+            [ 'Date First Available', -1 ],
+            [ 'Warranty & Support', -1 ],
+            [ 'Technical Specification', -1 ],
+            [ 'Customer Reviews', -1 ],
+            [ 'Operating System', -1 ],
+            [ 'Feedback', -1 ],
+            [ 'Manufacturer Part Number', -1 ],
+            [ 'Color', -1 ],
+            [ 'Number of Items', -1 ],
+            [ 'Technical Details', -1 ],
+            [ 'Additional Information', -1 ],
+            [ 'National Stock Number', -1 ],
+        ]
+
+        productInformation = self.__response.get('productInformation')
+
+        if type(productInformation) is str:
+            informationDict = self.__fillSearchTerms(productInformation, searchTerms)
+
+            self.__stuffClassFromInfoDict(informationDict)
+
+    def __stuffClassFromInfoDict(self, informationDict):
+        self.__asin = informationDict.get("ASIN")
+        self.__model = informationDict.get("Item model number")
+        self.__shippingWeight = informationDict.get('Shipping Weight')
+        self.__itemWeight = informationDict.get("Item Weight")
+        self.__bestSellersRank = informationDict.get('Best Sellers Rank')
+        self.__dateFirstListed = informationDict.get('Date first listed on Amazon')
+
+    def __fillSearchTerms(self, productInformation, searchTerms):
+        """
+        Given the product information string and the search terms multi dimensional list go through the search terms and populate the values based on the information in the product string.
+        """
+        informationDict = {}
+
+        for term in searchTerms:
+            term[1] = productInformation.find(term[0])
+
+        searchTerms.sort(key=lambda x: x[1])
+
+        for i in range(len(searchTerms)):
+            term = searchTerms[i]
+
+            # find the end of the value we're looking for. It's either the start of the next term or the end of the string
+            if i < (len(searchTerms) - 1):
+                end = searchTerms[i + 1][1] - 1
+            else:
+                end = -1
+
+            if term[1] != -1:
+                start = term[1] + len(term[0]) + 1
+                val = productInformation[start : end]
+                informationDict.update({term[0]: val})
+        
+        return informationDict
+
+    def __fillDict(self):
+        productDict = {}
+        properties = dir(self)
+
+        for prop in properties:
+            if prop[0] != '_':
+                value = self.__getattribute__(prop)
+                if not inspect.ismethod(value):
+                    productDict.update({prop: self.__getattribute__(prop)})
+        
+        self.productDict = productDict # do this here so things don't get self referenced...
+
+    def __getPrice(self):
         try:
-            priceList = self._response.get("Price").split("$")
+            priceList = self.__response.get("Price").split("$")
             if len(priceList) >= 1:
                 priceString = priceList[1]
                 price = priceString.split(',')
                 cleanPrice = ''.join(price)
-                self.price = float(cleanPrice)
-                self.productDict.update({"priceAmazon": self.price})
+                self.__price = float(cleanPrice)
         except:
-            print("Can't parse %s"%self._response.get("Price"))
+            print("Can't parse %s"%self.__response.get("Price"))
 
     def printItem(self):
-        print("Product Name: %s"%self.productName)
-        print("Price: %s"%self.price)
-        print("URL: %s"%self.itemURL)
-        print("Product Type: %s"%self.productType)
-        print("Product Category: %s"%self.productCategory)
-        print("Availability: %s"%self.availability)
-        print("Category Rank: %s"%self.categoryRank)
+        print("Product Name: %s"%self.__productName)
+        print("Price: %s"%self.__price)
+        print("URL: %s"%self.__itemURL)
+        print("Product Type: %s"%self.__productType)
+        print("Product Category: %s"%self.__productCategory)
+        print("Availability: %s"%self.__availability)
+        print("Category Rank: %s"%self.__categoryRank)
 
 
 
@@ -78,7 +215,7 @@ class amazonFinder():
         html = self._agent.getHtmlContent(url)
         data = self._productExtractor.extract(html.text)
         dataEmpty = self._checkThatDataIsNotEmpty(data)
-        if (dataEmpty): # try again with a different user agent
+        if (dataEmpty): # try again with a different user agent. I only do this once so I don't spin indefinitely
             self._agent.switchUserAgent()
             html = self._agent.getHtmlContent(url)
             data = self._productExtractor.extract(html.text)
@@ -113,7 +250,7 @@ class amazonFinder():
         for result in results:
 
             if ('www.amazon' in result):
-                productData = self.extractAmazonProductInfo(result)
+                productData = self.extractAmazonProductInfo(result) #todo: use amazonItem to filter data.
 
                 containsFilter = False
 
@@ -130,8 +267,9 @@ class amazonFinder():
 
                 if (containsFilter):
                     item = amazonItem(productData)
-                    item.itemURL = result
-                    item.productDict.update({"itemURLAmazon": result})
+
+                    item.parseData(result)
+
                     return item
 
             if (count > num_results):
