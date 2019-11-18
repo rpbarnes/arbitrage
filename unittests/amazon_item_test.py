@@ -1,4 +1,4 @@
-from amazon_product_finder import amazonFinder, amazonItem
+from amazon_item import amazonItem
 import unittest
 
 class Test_amazon_item(unittest.TestCase):

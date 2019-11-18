@@ -5,91 +5,11 @@ from selectorlib import Extractor
 from scraper_agent import scraperAgent
 import re
 import json
+from ebay_item import ebayItem
 
 # ebay finding sdk documentation
 # https://developer.ebay.com/Devzone/finding/CallRef/findItemsAdvanced.html
 
-class EbayItem():
-    def __init__(self, response):
-        self._response = response
-        self.initializeDict()
-        self.brand = ""
-        self.model = ""
-        self.title = response.get("title")
-        self.productDict.update({'titleEbay': self.title})
-        self.getProductCategory()
-        self.itemURL = response.get("viewItemURL")
-        self.productDict.update({'itemURLEbay': self.itemURL})
-        self.location = response.get("location")
-        self.productDict.update({'locationEbay': self.location})
-        self.shippingCost = response.get("shippingType")
-        self.productDict.update({'shippingCostEbay': self.shippingCost})
-        self.getProductPrice()
-        self.buyNow = response.get("listingInfo")
-        self.getCondition()
-
-    def initializeDict(self):
-        self.productDict = {}
-        self.productDict.update({'titleEbay': ""})
-        self.productDict.update({'itemURLEbay': ""})
-        self.productDict.update({'locationEbay': ""})
-        self.productDict.update({'shippingCostEbay': ""})
-        self.productDict.update({'conditionEbay': ""})
-        self.productDict.update({'categoryEbay': ""})
-        self.productDict.update({'priceEbay': ""})
-        self.productDict.update({'currencyEbay': ""})
-
-    def getCondition(self):
-        self.condition = None
-
-        conditionString = self._response.get("condition")
-
-        if (conditionString != None):
-            self.condition = conditionString.get("conditionDisplayName")
-            self.productDict.update({'conditionEbay': self.condition})
-
-    def getProductCategory(self):
-        self.category = None
-
-        categoryString = self._response.get("primaryCategory")
-
-        if (categoryString != None):
-            self.category = categoryString.get("categoryName")
-            self.productDict.update({'categoryEbay': self.category})
-
-
-    
-    def getProductPrice(self):
-        self.price = None
-        self.currency = None
-
-        priceString = self._response.get("sellingStatus")
-
-        if (priceString != None):
-            currentPrice = priceString.get("currentPrice")
-
-            if (currentPrice != None):
-                try:
-                    self.currency = currentPrice.get("currencyId")
-                    self.price = float(currentPrice.get("value"))
-                    self.productDict.update({'priceEbay': self.price})
-                    self.productDict.update({'currencyEbay': self.currency})
-                except:
-                    self.price = None
-
-
-
-    def printItem(self):
-        print("Title: %s"%self.title)
-        print("Category: %s"%self.category)
-        print("URL: %s"%self.itemURL)
-        print("Location: %s"%self.location)
-        print("Shipping Cost: %s"%self.shippingCost)
-        print("Price: %s"%self.price)
-        print("Brand: %s"%self.brand)
-        print("Model: %s"%self.model)
-        print("Buy Now: %s"%self.buyNow)
-        print("Condition: %s"%self.condition)
 
 # the get item information needs improvement to actually get the item info
 class EbayFinder():
@@ -102,81 +22,21 @@ class EbayFinder():
     def findItemsByKeyword(self, searchWords, page = 1):
         response = self._api.execute('findItemsAdvanced', {
             'keywords': searchWords, 
-            'sortOrder': 'PricePlusShippingHighest', 
+            #'sortOrder': 'PricePlusShippingHighest', 
             'page': page,
             #'paginationOutput':{'entriesPerPage': 500, 'pageNumber': page}, # this command doesn't work...
             })
-        return [EbayItem(x) for x in response.reply.searchResult.item]
+        return [ebayItem(x) for x in response.reply.searchResult.item]
 
     def getItemInformation(self, ebayItem):
         html = self._agent.getHtmlContent(ebayItem.itemURL)
         data = self._productExtractor.extract(html.text)
 
-        ebayItem.productData = data
+        ebayItem.parseData(data)
 
-        ebayItem = self.parseItemSpecifics(ebayItem)
-
-        ebayItem = self.fillInModelData(ebayItem, data)
-
-        ebayItem = self.fillInBrand(ebayItem, data)
 
         return ebayItem
 
-    def fillInBrand(self, ebayItem, data):
-        ebayItem.brand = ebayItem.itemSpecifics.get('Brand')
-
-        if ebayItem.brand != None:
-            ebayItem.brand = ebayItem.brand.split(' ')[0] # just pull the first in the string as this may have other hangers on that you don't want.
-
-        else:
-            ebayItem.brand = data.get('brand2')
-
-        return ebayItem
-
-    def parseItemSpecifics(self, ebayItem):
-        ## sample of parsing itemspecifics
-        productstring = ebayItem.productData.get('itemSpecificsString')
-        productlist = productstring.split(' ')
-        productdict = {}
-        key = None
-        currentWord = ''
-        for word in productlist:
-            if ':' in word:
-                if key != None:
-                    productdict.update({key: currentWord.strip()})
-                key = word.split(':')[0]
-                currentWord = ''
-
-            else:
-                currentWord += word + ' '
-        ebayItem.itemSpecifics = productdict
-
-        return ebayItem
-
-    def fillInModelData(self, ebayItem, data):
-
-        if ebayItem.itemSpecifics.get('Model') != None:
-            ebayItem.model = ebayItem.itemSpecifics.get('Model')
-
-        elif ebayItem.itemSpecifics.get('MPN') != None:
-            ebayItem.model = ebayItem.itemSpecifics.get('MPN')
-
-        #fieldsToCheck = ['MPN2', 'Model2', 'Model3', 'MPN',  'Model']
-
-        # look for the first that contains a number
-        #for fieldToCheck in fieldsToCheck:
-        #    toCheck = data.get(fieldToCheck)
-
-        #    if type(toCheck) is str:
-
-        #        match = re.search(r'\d', toCheck)
-
-        #        if (match != None): # see if it looks like a part number
-        #            ebayItem.model = toCheck
-        #            print("taking %s"%toCheck)
-        #            break
-
-        return ebayItem
 
 
 

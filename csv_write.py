@@ -1,6 +1,6 @@
 import csv
 from amazon_product_finder import amazonItem
-from ebay_finder import EbayItem
+from ebay_item import ebayItem
 import os.path
 
 class CsvWriter():
